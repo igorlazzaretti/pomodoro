@@ -1,10 +1,10 @@
 <!--
 :tomato: Pomodoro PWA
-Commit: First Commit
+Commit: Readme Update
  -->
 
 <div align="center">
-  <img src="./assets/favico.svg" width="300px" height="300px>
+  <img src="./assets/favico.svg" width="300px" height="300px">
 </div>
 
 # 🍅 Pomodoro
@@ -14,20 +14,24 @@ da prática de PWA ( Progressive Web Apps).
 
 Um Progressive Web App, ou PWA, é um termo que descreve um site que foi aprimorado com tecnologias modernas para oferecer uma experiência de usuário que se aproxima muito da de um aplicativo nativo (como aqueles baixados da App Store ou Google Play).
 
-- HTML e CSS para a estrutura do site.
-- Javascript para o funcionamento do site e a criação de novos games.
-- Confira e utilize o projeto neste <a href="https://igorlazzaretti.github.io/retrogames/"> link</a>.
+- HTML, CSS e Tailwind para a estrutura do site.
+- Javascript com funções: adaptação do tema claro/escuro conforme seu SO, temporizador, alerta sonoro e outros.
+- Confira e utilize o projeto neste <a href="https://igorlazzaretti.github.io/pomodoro/"> link</a>.
 
 ## 🚀 Tecnologias Utilizadas
 
-**Front-End:** HTML, Tailwind e JavaScript;
+**Front-End:** HTML, CSS, Tailwind e JavaScript;
 
-### Principais recursos:
+## Principais recursos:
 
 - 🎨 **Design:** Moderno;
 - 🧩 **Organização:** Estrutura limpa e simples;
-- 🔗 **Dados:** Não possui consumo de dados;
 - 📱 **Layout Responsivo:** Compatível com dispositivos móveis;
+- 🍎 **PWA**: Funciona como um app nativo para o celular ou para o desktop;
+
+## 🍎 PWA:
+
+**TODO: Principais caracteristicas do PWA**
 
 ## ❤️ Ajude um Desenvolvedor
 
@@ -45,3 +49,8 @@ If you liked the site, consider helping the developer with a symbolic amount.
 🔗 [LinkedIn](https://www.linkedin.com/in/igorlazzaretti/)
 🌐 [Portfólio](https://igorlazzaretti.com/)
 💻 [Projetos GitHub](https://github.com/igorlazzaretti?tab=repositories)
+
+## 📸 Printscreen do Site
+<div align="center">
+  <img src="./assets/website.webp" width="550px">
+</div>
