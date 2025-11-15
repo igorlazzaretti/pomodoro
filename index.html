@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favico.svg">
+    <title>Pomodoro Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Aplica o tema escuro/claro baseado na preferência do sistema ou localStorage
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-red-50 to-orange-50 dark:from-slate-900 dark:to-slate-800 min-h-screen flex items-center justify-center p-4 transition-colors duration-500">
+    <div class="w-full max-w-md">
+        <div class="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-center text-gray-800 dark:text-white mb-8">Pomodoro 🍅</h1>
+
+            <!-- Botões de modo -->
+            <div class="flex gap-2 mb-8">
+                <button id="pomodoroBtn" class="flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 bg-red-500 text-white shadow-lg">
+                    Pomodoro
+                </button>
+                <button id="shortBreakBtn" class="flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 bg-white/60 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-slate-600">
+                    Short Break
+                </button>
+                <button id="longBreakBtn" class="flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 bg-white/60 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-slate-600">
+                    Long Break
+                </button>
+            </div>
+
+            <!-- Timer Display -->
+            <div class="text-center mb-8">
+                <div id="timerDisplay" class="text-7xl md:text-8xl font-bold text-gray-800 dark:text-white mb-4">25:00</div>
+                <div class="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-red-500 transition-all duration-1000" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <!-- Controles -->
+            <div class="flex gap-4 justify-center">
+                <button id="startBtn" class="px-8 py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
+                    Iniciar
+                </button>
+                <button id="resetBtn" class="px-8 py-4 bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500 text-gray-700 dark:text-gray-200 font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
+                    Resetar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modes = {
+            pomodoro: 25 * 60,
+            shortBreak: 5 * 60,
+            longBreak: 15 * 60
+        };
+
+        const colors = {
+            pomodoro: { bg: 'bg-red-500', hover: 'hover:bg-red-600', progress: 'bg-red-500' },
+            shortBreak: { bg: 'bg-green-500', hover: 'hover:bg-green-600', progress: 'bg-green-500' },
+            longBreak: { bg: 'bg-blue-500', hover: 'hover:bg-blue-600', progress: 'bg-blue-500' }
+        };
+
+        let currentMode = 'pomodoro';
+        let timeLeft = modes[currentMode];
+        let totalTime = modes[currentMode];
+        let isRunning = false;
+        let interval;
+
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const progressBar = document.getElementById('progressBar');
+        const pomodoroBtn = document.getElementById('pomodoroBtn');
+        const shortBreakBtn = document.getElementById('shortBreakBtn');
+        const longBreakBtn = document.getElementById('longBreakBtn');
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playAlarm() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+
+            setTimeout(() => {
+                const osc2 = audioContext.createOscillator();
+                const gain2 = audioContext.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioContext.destination);
+                osc2.frequency.value = 1000;
+                osc2.type = 'sine';
+                gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                osc2.start(audioContext.currentTime);
+                osc2.stop(audioContext.currentTime + 0.5);
+            }, 200);
+        }
+
+        function showNotification() {
+            // Verifica se o navegador suporta notificações e se a permissão foi concedida
+            if (!('Notification' in window) || Notification.permission !== 'granted') {
+                return;
+            }
+
+            const title = 'Pomodoro Alert! 🍅';
+            let body;
+
+            if (currentMode === 'pomodoro') {
+                body = 'Seu tempo de foco acabou. Hora de uma pausa!';
+            } else {
+                body = 'A pausa terminou. Vamos voltar ao foco!';
+            }
+
+            new Notification(title, {
+                body: body,
+                icon: 'assets/favico.svg' // Ícone da notificação
+            });
+        }
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            const progress = (timeLeft / totalTime) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function updateButtonStyles() {
+            const buttons = { pomodoro: pomodoroBtn, shortBreak: shortBreakBtn, longBreak: longBreakBtn };
+
+            Object.keys(buttons).forEach(mode => {
+                const btn = buttons[mode];
+                btn.className = 'flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300';
+
+                if (mode === currentMode) {
+                    btn.className += ` ${colors[mode].bg} text-white shadow-lg`;
+                } else {
+                    btn.className += ' bg-white/60 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-slate-600';
+                }
+            });
+
+            startBtn.className = `px-8 py-4 ${colors[currentMode].bg} ${colors[currentMode].hover} text-white font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105`;
+            progressBar.className = `h-full ${colors[currentMode].progress} transition-all duration-1000`;
+        }
+
+        function setMode(mode) {
+            if (isRunning) return;
+            currentMode = mode;
+            timeLeft = modes[mode];
+            totalTime = modes[mode];
+            updateDisplay();
+            updateButtonStyles();
+        }
+
+        async function startTimer() {
+            // Pede permissão para notificações na primeira vez que o usuário interage
+            if ('Notification' in window && Notification.permission === 'default') {
+                await Notification.requestPermission();
+            }
+
+            if (isRunning) {
+                clearInterval(interval);
+                isRunning = false;
+                startBtn.textContent = 'Iniciar';
+            } else {
+                isRunning = true;
+                startBtn.textContent = 'Pausar';
+
+                interval = setInterval(() => {
+                    timeLeft--;
+                    updateDisplay();
+
+                    if (timeLeft <= 0) {
+                        clearInterval(interval);
+                        isRunning = false;
+                        startBtn.textContent = 'Iniciar';
+                        playAlarm();
+                        showNotification();
+
+                        setTimeout(() => {
+                            playAlarm();
+                        }, 600);
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(interval);
+            isRunning = false;
+            timeLeft = modes[currentMode];
+            totalTime = modes[currentMode];
+            startBtn.textContent = 'Iniciar';
+            updateDisplay();
+        }
+
+        pomodoroBtn.addEventListener('click', () => setMode('pomodoro'));
+        shortBreakBtn.addEventListener('click', () => setMode('shortBreak'));
+        longBreakBtn.addEventListener('click', () => setMode('longBreak'));
+        startBtn.addEventListener('click', startTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        updateDisplay();
+        updateButtonStyles();
+    </script>
+</body>
+</html>
