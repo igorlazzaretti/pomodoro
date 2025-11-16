@@ -1,6 +1,6 @@
 <!--
 :tomato: Pomodoro PWA
-Commit: Readme Update
+Commit: PWA, first version without offline tailwind.
  -->
 
 <div align="center">
