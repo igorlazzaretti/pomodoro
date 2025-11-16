@@ -1,6 +1,6 @@
 <!--
 :tomato: Pomodoro PWA
-Commit: PWA, first version without offline tailwind.
+Commit: Readme, PWA, first version without offline tailwind
  -->
 
 <div align="center">
@@ -31,7 +31,11 @@ Um Progressive Web App, ou PWA, é um termo que descreve um site que foi aprimor
 
 ## 🍎 PWA:
 
-**TODO: Principais caracteristicas do PWA**
+Este projeto é um Progressive Web App, o que significa que ele oferece uma experiência semelhante a um aplicativo nativo diretamente do seu navegador. Você pode "instalar" o site no seu celular ou computador.
+
+- **Instalável:** Adicione o Pomodoro à sua tela inicial ou área de trabalho para acesso rápido, como um aplicativo comum.
+- **Funcionalidade Offline:** O temporizador funciona mesmo se você perder a conexão com a internet, garantindo que seus ciclos de foco não sejam interrompidos (requer instalação prévia).
+- **Alertas e Notificações:** Receba alertas sonoros e notificações do navegador quando um ciclo do Pomodoro ou uma pausa terminar, mesmo que o aplicativo esteja em segundo plano.
 
 ## ❤️ Ajude um Desenvolvedor
 
