@@ -1,6 +1,6 @@
 <!--
 :tomato: Pomodoro PWA
-Commit: Readme, PWA, first version without offline tailwind
+Commit: Botão de Para Alarme
  -->
 
 <div align="center">

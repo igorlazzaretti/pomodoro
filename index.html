@@ -52,14 +52,20 @@
             </div>
 
             <!-- Controles -->
-            <div class="flex gap-4 justify-center">
-                <button id="startBtn"
-                    class="px-8 py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
-                    Iniciar
-                </button>
-                <button id="resetBtn"
-                    class="px-8 py-4 bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500 text-gray-700 dark:text-gray-200 font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
-                    Resetar
+            <div class="relative h-14">
+                <div id="timerControls" class="flex gap-4 justify-center">
+                    <button id="startBtn"
+                        class="px-8 py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
+                        Iniciar
+                    </button>
+                    <button id="resetBtn"
+                        class="px-8 py-4 bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500 text-gray-700 dark:text-gray-200 font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
+                        Resetar
+                    </button>
+                </div>
+                <button id="stopAlarmBtn"
+                    class="hidden absolute inset-0 mx-auto w-full max-w-xs px-8 py-4 bg-red-500 hover:bg-gray-600 text-white font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
+                    Parar Alarme
                 </button>
             </div>
         </div>
@@ -83,6 +89,8 @@
         let totalTime = modes[currentMode];
         let isRunning = false;
         let interval;
+        let isAlarmPlaying = false;
+        let alarmInterval;
 
         const timerDisplay = document.getElementById('timerDisplay');
         const startBtn = document.getElementById('startBtn');
@@ -91,37 +99,46 @@
         const pomodoroBtn = document.getElementById('pomodoroBtn');
         const shortBreakBtn = document.getElementById('shortBreakBtn');
         const longBreakBtn = document.getElementById('longBreakBtn');
+        const timerControls = document.getElementById('timerControls');
+        const stopAlarmBtn = document.getElementById('stopAlarmBtn');
 
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        function playAlarm() {
+        function playBeep() {
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
 
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
 
-            oscillator.frequency.value = 800;
+            oscillator.frequency.value = 900;
             oscillator.type = 'sine';
 
             gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
 
             oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
+            oscillator.stop(audioContext.currentTime + 0.4);
+        }
 
-            setTimeout(() => {
-                const osc2 = audioContext.createOscillator();
-                const gain2 = audioContext.createGain();
-                osc2.connect(gain2);
-                gain2.connect(audioContext.destination);
-                osc2.frequency.value = 1000;
-                osc2.type = 'sine';
-                gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                osc2.start(audioContext.currentTime);
-                osc2.stop(audioContext.currentTime + 0.5);
-            }, 200);
+        function startAlarm() {
+            isAlarmPlaying = true;
+            timerControls.classList.add('hidden');
+            stopAlarmBtn.classList.remove('hidden');
+            alarmInterval = setInterval(playBeep, 1200); // Toca um beep a cada 1.2 segundos
+            timerDisplay.textContent = '⏰';
+
+        }
+
+        function stopAlarm() {
+            clearInterval(alarmInterval);
+            isAlarmPlaying = false;
+            timerControls.classList.remove('hidden');
+            stopAlarmBtn.classList.add('hidden');
+            // Reseta o timer para o modo atual para que o usuário possa começar de novo
+            timeLeft = modes[currentMode];
+            totalTime = modes[currentMode];
+            updateDisplay();
         }
 
         function showNotification() {
@@ -173,12 +190,17 @@
         }
 
         function setMode(mode) {
+            if (isAlarmPlaying) return; // Impede a troca de modo enquanto o alarme toca
             if (isRunning) return;
             currentMode = mode;
             timeLeft = modes[mode];
             totalTime = modes[mode];
             updateDisplay();
             updateButtonStyles();
+            // Se o timer não estava rodando, garante que o botão "Iniciar" esteja visível
+            if (!isRunning) {
+                startBtn.textContent = 'Iniciar';
+            }
         }
 
         async function startTimer() {
@@ -199,16 +221,12 @@
                     timeLeft--;
                     updateDisplay();
 
-                    if (timeLeft <= 0) {
+                    if (timeLeft < 0) {
                         clearInterval(interval);
                         isRunning = false;
                         startBtn.textContent = 'Iniciar';
-                        playAlarm();
+                        startAlarm();
                         showNotification();
-
-                        setTimeout(() => {
-                            playAlarm();
-                        }, 600);
                     }
                 }, 1000);
             }
@@ -228,6 +246,7 @@
         longBreakBtn.addEventListener('click', () => setMode('longBreak'));
         startBtn.addEventListener('click', startTimer);
         resetBtn.addEventListener('click', resetTimer);
+        stopAlarmBtn.addEventListener('click', stopAlarm);
 
         updateDisplay();
         updateButtonStyles();
